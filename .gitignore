@@ -1,6 +1,8 @@
+*.jpg
 nba-computer-vision/videos
 nba-computer-vision/tfod
-nba-computer-vision/shot_detection_images
+nba-computer-vision/shot_images/noshot/*/*/*.jpg
+nba-computer-vision/shot_images/shot/*/*/*.jpg
 nba-computer-vision/logs
 nba-computer-vision/workspace/scripts
 nba-computer-vision/workspace/protoc
