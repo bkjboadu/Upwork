@@ -1,6 +1,12 @@
 *.jpg
 nba-computer-vision/videos
 nba-computer-vision/tfod
+nba-computer-vision/aug_data/test/*.json
+nba-computer-vision/aug_data/train/*.json
+nba-computer-vision/aug_data/images/*.json
+nba-computer-vision/aug_data/test/*
+nba-computer-vision/aug_data/train/*
+nba-computer-vision/aug_data/images/*
 nba-computer-vision/shot_images/noshot/*/*/*.jpg
 nba-computer-vision/shot_images/shot/*/*/*.jpg
 nba-computer-vision/logs
@@ -24,3 +30,10 @@ tumor-detection/data
 tumor-detection/svs_file
 tumor-detection/screenshots
 tumor-detection/image
+dave_final/videos
+dave_final/tfod
+dave_final/workspace
+dave_final/workspace/scripts
+dave_final/workspace/protoc
+dave_final/workspace/images
+dave_final/workspace/annotation
