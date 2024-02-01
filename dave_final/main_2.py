@@ -16,6 +16,7 @@ from scipy.interpolate import make_interp_spline
 import argparse
 
 import os
+from filterpy.kalman import KalmanFilter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from PyPDF2 import PdfMerger
@@ -350,6 +351,32 @@ def create_dataframe(keypoints,name_to_save):
     df.to_excel(f"{name_to_save}.xlsx")
 
 
+def kalman_filter(x,y):
+    x = np.array(x)
+    y = np.array(y)
+        # Initialize Kalman filter parameters
+    kf = KalmanFilter(dim_x=2, dim_z=1)
+    kf.F = np.array([[1, 0.1],
+                    [0, 1]])
+    kf.H = np.array([[1, 0.1]])
+    # Process noise covariance
+    kf.Q = np.array([[1e-3, 0],
+                    [0, 1e-3]])
+    # Measurement noise covariance
+    kf.R = 0.5
+    # Initial state
+    kf.x = np.array([0, 0])
+    # Initial state covariance
+    kf.P *= 1e-2
+    # Apply the Kalman filter to smooth the noisy data
+    smoothed_values = []
+    for measurement in y:
+        kf.predict()
+        kf.update(measurement)
+        smoothed_values.append(kf.x[0])
+    return x,smoothed_values
+
+
 def plot_angle_graph_and_save(frames,angles,save_as,release_frame):
     x = np.array(frames)
     y = np.array(angles)
@@ -372,6 +399,7 @@ def plot_angle_graph_and_save(frames,angles,save_as,release_frame):
     labels_to_normalize = ["elbow_angle","hip_angle", "knee_angle", "ankle_angle"]
     normalization_threshold = { "hip_angle":(-30,0), "knee_angle":(0,-45), "ankle_angle":(-20,40)}
     df = pd.DataFrame(y,index=x,columns=labels)
+    
 
 
     labels_to_plot = ["elbow_angle", "shoulder_angle", "wrist_angle","hip_angle", "knee_angle", "ankle_angle"]
@@ -383,12 +411,9 @@ def plot_angle_graph_and_save(frames,angles,save_as,release_frame):
 
         if col in labels_to_plot[3:]:
             y = normalize_to_range(y)
-        spl = make_interp_spline(x, y, k=3)
-        x_smooth = np.linspace(x.min(), x.max(), 1000)
-        x_smooth = np.arange(x_smooth.min(), x_smooth.max(), step=4)
-        y_smooth = spl(x_smooth)
+        x_smooth,y_smooth = kalman_filter(x,y)
         if col == 'wrist_angle':  
-            y_smooth = -y_smooth
+            y_smooth = [-value for value in y_smooth]
 
         if col in labels_to_plot[3:]:
             plt.plot(x_smooth, y_smooth, label=col,linewidth=0.4)
@@ -560,7 +585,7 @@ def do_analysis(path):
             cv2.putText(image_np, f'Frame: {frame_count}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(image_np, f'FPS: {fps:.2f}', (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(image_np, f'Shot number: {shot_num}', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(image_np, f'Shot frame count: {shot_frame_count}', (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            # cv2.putText(image_np, f'Shot frame count: {shot_frame_count}', (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
             
             input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
