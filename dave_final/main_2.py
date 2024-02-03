@@ -365,7 +365,7 @@ def kalman_filter(x,y):
     # Measurement noise covariance
     kf.R = 0.5
     # Initial state
-    kf.x = np.array([0, 0])
+    kf.x = np.array([x[0], y[0]])
     # Initial state covariance
     kf.P *= 1e-2
     # Apply the Kalman filter to smooth the noisy data
@@ -631,7 +631,6 @@ def do_analysis(path):
                y_predict = model.predict(np.expand_dims(sequence,axis=0))
                y_predict = np.argmax(y_predict)
                shot_label = actions[y_predict]
-               print(shot_label)
                shot_buffer.append(shot_label)
                waiting_buffer.append(shot_label)
 
@@ -690,4 +689,10 @@ def do_analysis(path):
 
 
 if __name__ == '__main__':
-    do_analysis(input_filename)
+    try:
+        if not os.path.exists(input_filename):
+            raise FileNotFoundError(f'The file path "{input_filename}" does not exist')
+        else:
+            do_analysis(input_filename)
+    except PermissionError:
+        raise PermissionError("a file for this report is already opened in another app. Please close and run code again")
